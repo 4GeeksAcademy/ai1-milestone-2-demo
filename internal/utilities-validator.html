@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexova Utilities Validator</title>
+    <style>
+      :root {
+        --bg: #f5f2ea;
+        --bg-accent: #e8e2d5;
+        --card: #fffdf8;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --ok: #15803d;
+        --ok-bg: #dcfce7;
+        --fail: #b91c1c;
+        --fail-bg: #fee2e2;
+        --brand: #0f766e;
+        --brand-2: #115e59;
+        --border: #d6d3d1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 10% 10%, #ffffff 0%, transparent 28%),
+          radial-gradient(circle at 90% 0%, #fef3c7 0%, transparent 24%),
+          linear-gradient(140deg, var(--bg) 0%, var(--bg-accent) 100%);
+      }
+
+      .page {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        color: #ffffff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 118, 110, 0.2);
+      }
+
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.4rem, 4vw, 2rem);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 72ch;
+        opacity: 0.95;
+      }
+
+      .actions {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 10px;
+        background: #ffffff;
+        color: var(--brand-2);
+        font-weight: 700;
+        padding: 10px 14px;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .summary {
+        margin-top: 8px;
+        font-weight: 700;
+      }
+
+      .grid {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 12px;
+      }
+
+      .group-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .group-title {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      .group-stat {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .checks {
+        margin-top: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .check {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      .check-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .check h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .status {
+        font-size: 0.85rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 4px 10px;
+      }
+
+      .pass {
+        color: var(--ok);
+        background: var(--ok-bg);
+      }
+
+      .fail {
+        color: var(--fail);
+        background: var(--fail-bg);
+      }
+
+      .check p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      .mono {
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.8rem;
+        overflow-x: auto;
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>Nexova Utility Health Check</h1>
+        <p>
+          This page runs easy-to-understand checks to confirm the hiring utilities
+          behave correctly. You can click one button and read green or red results.
+        </p>
+        <div class="actions">
+          <button id="runChecksBtn">Run Full Validation</button>
+          <div id="summary" class="summary">No checks run yet.</div>
+        </div>
+      </section>
+
+      <section id="groupStats" class="grid"></section>
+      <section id="checks" class="checks"></section>
+    </main>
+
+    <script>
+      const sampleCandidates = [
+        {
+          id: "C-2024-0451",
+          fullName: "Maria Gonzalez",
+          email: "maria.gonzalez@email.com",
+          phone: "+56912345678",
+          yearsOfExperience: 5,
+          skills: ["TypeScript", "React", "Node.js", "PostgreSQL"],
+          englishLevel: "B2",
+          seniority: "Semi-Senior",
+          currentSalary: 3500,
+          expectedSalary: 4200,
+          availability: "1 month",
+          location: "Valencia, Spain",
+          remoteOnly: false,
+          status: "Active",
+        },
+        {
+          id: "C-2024-0452",
+          fullName: "Juan Perez",
+          email: "juan.perez@email.com",
+          phone: "+56987654321",
+          yearsOfExperience: 3,
+          skills: ["JavaScript", "React", "CSS", "HTML"],
+          englishLevel: "B1",
+          seniority: "Junior",
+          currentSalary: 2200,
+          expectedSalary: 2800,
+          availability: "Immediate",
+          location: "Miami, Florida, United States",
+          remoteOnly: true,
+          status: "Active",
+        },
+        {
+          id: "C-2024-0453",
+          fullName: "Carolina Silva",
+          email: "carolina.silva@email.com",
+          phone: "+56911223344",
+          yearsOfExperience: 8,
+          skills: ["TypeScript", "Node.js", "PostgreSQL", "Docker", "AWS"],
+          englishLevel: "C1",
+          seniority: "Senior",
+          currentSalary: 5500,
+          expectedSalary: 6500,
+          availability: "2 weeks",
+          location: "Valencia, Spain",
+          remoteOnly: false,
+          status: "In process",
+        },
+      ];
+
+      const sampleVacancy = {
+        id: "V-2024-0892",
+        title: "Senior Full-Stack Developer",
+        companyName: "TechCorp Solutions",
+        requiredSkills: ["TypeScript", "React", "Node.js"],
+        preferredSkills: ["PostgreSQL", "Docker"],
+        minYearsExperience: 4,
+        maxYearsExperience: 8,
+        requiredEnglishLevel: "B2",
+        requiredSeniority: "Senior",
+        salaryRangeMin: 5000,
+        salaryRangeMax: 7000,
+        isRemote: true,
+        location: "Remote",
+        status: "Open",
+      };
+
+      const englishOrder = ["A1", "A2", "B1", "B2", "C1", "C2", "Native"];
+      const seniorityOrder = ["Junior", "Semi-Senior", "Senior", "Lead", "Executive"];
+
+      function filterCandidatesBySkills(candidates, requiredSkills) {
+        const normalizedRequiredSkills = requiredSkills.map((skill) => skill.toLowerCase());
+        return candidates.filter((candidate) => {
+          const candidateSkills = new Set(candidate.skills.map((skill) => skill.toLowerCase()));
+          return normalizedRequiredSkills.every((requiredSkill) =>
+            candidateSkills.has(requiredSkill),
+          );
+        });
+      }
+
+      function filterCandidatesBySeniority(candidates, seniority) {
+        return candidates.filter((candidate) => candidate.seniority === seniority);
+      }
+
+      function filterCandidatesByAvailability(candidates, availability) {
+        const allowedAvailability = new Set(availability);
+        return candidates.filter((candidate) => allowedAvailability.has(candidate.availability));
+      }
+
+      function sortCandidatesBySalary(candidates, order) {
+        const direction = order === "asc" ? 1 : -1;
+        return [...candidates].sort((a, b) => direction * (a.expectedSalary - b.expectedSalary));
+      }
+
+      function sortCandidatesByExperience(candidates, order) {
+        const direction = order === "asc" ? 1 : -1;
+        return [...candidates].sort(
+          (a, b) => direction * (a.yearsOfExperience - b.yearsOfExperience),
+        );
+      }
+
+      function findCandidateById(candidates, id) {
+        for (const candidate of candidates) {
+          if (candidate.id === id) {
+            return candidate;
+          }
+        }
+        return null;
+      }
+
+      function findCandidateByEmail(candidates, email) {
+        const normalizedEmail = email.toLowerCase();
+        for (const candidate of candidates) {
+          if (candidate.email.toLowerCase() === normalizedEmail) {
+            return candidate;
+          }
+        }
+        return null;
+      }
+
+      function binarySearchCandidateBySalary(sortedCandidates, targetSalary) {
+        let left = 0;
+        let right = sortedCandidates.length - 1;
+
+        while (left <= right) {
+          const middle = Math.floor((left + right) / 2);
+          const middleSalary = sortedCandidates[middle].expectedSalary;
+
+          if (middleSalary === targetSalary) {
+            return middle;
+          }
+
+          if (middleSalary < targetSalary) {
+            left = middle + 1;
+          } else {
+            right = middle - 1;
+          }
+        }
+
+        return -1;
+      }
+
+      function roundToTwoDecimals(value) {
+        return Math.round(value * 100) / 100;
+      }
+
+      function clampScore(value) {
+        if (value < 0) {
+          return 0;
+        }
+
+        if (value > 100) {
+          return 100;
+        }
+
+        return value;
+      }
+
+      function calculateCandidateScore(candidate, vacancy) {
+        const candidateSkills = new Set(candidate.skills.map((skill) => skill.toLowerCase()));
+        const requiredSkills = [...new Set(vacancy.requiredSkills.map((skill) => skill.toLowerCase()))];
+        const preferredSkills = [...new Set(vacancy.preferredSkills.map((skill) => skill.toLowerCase()))];
+
+        const matchedRequiredSkills = requiredSkills.filter((skill) => candidateSkills.has(skill)).length;
+        const hasAllRequiredSkills =
+          requiredSkills.length === 0 || matchedRequiredSkills === requiredSkills.length;
+
+        let skillsScore = 0;
+        if (hasAllRequiredSkills) {
+          skillsScore += 40;
+        } else if (requiredSkills.length > 0 && matchedRequiredSkills / requiredSkills.length >= 0.5) {
+          skillsScore += 20;
+        }
+
+        const matchedPreferredSkills = preferredSkills.filter((skill) => candidateSkills.has(skill)).length;
+        skillsScore += Math.min(20, matchedPreferredSkills * 10);
+
+        let experienceScore = 0;
+        if (
+          candidate.yearsOfExperience >= vacancy.minYearsExperience &&
+          candidate.yearsOfExperience <= vacancy.maxYearsExperience
+        ) {
+          experienceScore = 20;
+        } else {
+          const distanceToRange =
+            candidate.yearsOfExperience < vacancy.minYearsExperience
+              ? vacancy.minYearsExperience - candidate.yearsOfExperience
+              : candidate.yearsOfExperience - vacancy.maxYearsExperience;
+
+          if (distanceToRange >= 1 && distanceToRange <= 2) {
+            experienceScore = 10;
+          }
+        }
+
+        let seniorityScore = 0;
+        const candidateSeniorityIndex = seniorityOrder.indexOf(candidate.seniority);
+        const vacancySeniorityIndex = seniorityOrder.indexOf(vacancy.requiredSeniority);
+        if (candidateSeniorityIndex === vacancySeniorityIndex) {
+          seniorityScore = 15;
+        } else if (
+          candidateSeniorityIndex >= 0 &&
+          vacancySeniorityIndex >= 0 &&
+          Math.abs(candidateSeniorityIndex - vacancySeniorityIndex) === 1
+        ) {
+          seniorityScore = 7;
+        }
+
+        let englishScore = 0;
+        const candidateEnglishIndex = englishOrder.indexOf(candidate.englishLevel);
+        const vacancyEnglishIndex = englishOrder.indexOf(vacancy.requiredEnglishLevel);
+        if (
+          candidateEnglishIndex >= 0 &&
+          vacancyEnglishIndex >= 0 &&
+          candidateEnglishIndex >= vacancyEnglishIndex
+        ) {
+          englishScore = 15;
+        }
+
+        let salaryScore = 0;
+        if (
+          candidate.expectedSalary >= vacancy.salaryRangeMin &&
+          candidate.expectedSalary <= vacancy.salaryRangeMax
+        ) {
+          salaryScore = 10;
+        } else if (
+          candidate.expectedSalary > vacancy.salaryRangeMax &&
+          candidate.expectedSalary <= vacancy.salaryRangeMax * 1.2
+        ) {
+          salaryScore = 5;
+        }
+
+        return clampScore(skillsScore + experienceScore + seniorityScore + englishScore + salaryScore);
+      }
+
+      function rankCandidatesForVacancy(candidates, vacancy) {
+        return candidates
+          .map((candidate) => ({ candidate, score: calculateCandidateScore(candidate, vacancy) }))
+          .sort((a, b) => b.score - a.score);
+      }
+
+      function groupCandidatesBySeniority(candidates) {
+        const grouped = {
+          Junior: [],
+          "Semi-Senior": [],
+          Senior: [],
+          Lead: [],
+          Executive: [],
+        };
+
+        for (const candidate of candidates) {
+          grouped[candidate.seniority].push(candidate);
+        }
+
+        return grouped;
+      }
+
+      function countCandidatesByStatus(candidates) {
+        const counts = {
+          Active: 0,
+          "In process": 0,
+          Hired: 0,
+          Inactive: 0,
+        };
+
+        for (const candidate of candidates) {
+          counts[candidate.status] += 1;
+        }
+
+        return counts;
+      }
+
+      function calculateAverageSalary(candidates) {
+        if (candidates.length === 0) {
+          return 0;
+        }
+        const totalSalary = candidates.reduce((sum, candidate) => sum + candidate.expectedSalary, 0);
+        return roundToTwoDecimals(totalSalary / candidates.length);
+      }
+
+      function findTopSkills(candidates, topN) {
+        if (topN <= 0) {
+          return [];
+        }
+
+        const skillCounts = new Map();
+
+        for (const candidate of candidates) {
+          const uniqueSkillsForCandidate = new Set(
+            candidate.skills.map((skill) => skill.trim()).filter((skill) => skill.length > 0),
+          );
+
+          for (const skill of uniqueSkillsForCandidate) {
+            const normalizedSkill = skill.toLowerCase();
+            const existing = skillCounts.get(normalizedSkill);
+
+            if (existing) {
+              existing.count += 1;
+              continue;
+            }
+
+            skillCounts.set(normalizedSkill, { skill, count: 1 });
+          }
+        }
+
+        return [...skillCounts.values()]
+          .sort((a, b) => {
+            if (b.count !== a.count) {
+              return b.count - a.count;
+            }
+            return a.skill.localeCompare(b.skill);
+          })
+          .slice(0, topN);
+      }
+
+      function calculateVacancyFillRate(processes) {
+        if (processes.length === 0) {
+          return 0;
+        }
+        const hiredCount = processes.filter((process) => process.stage === "Hired").length;
+        return roundToTwoDecimals((hiredCount / processes.length) * 100);
+      }
+
+      function isValidEmail(email) {
+        const trimmedEmail = email.trim();
+        const atIndex = trimmedEmail.indexOf("@");
+        const lastAtIndex = trimmedEmail.lastIndexOf("@");
+        const lastDotIndex = trimmedEmail.lastIndexOf(".");
+
+        if (atIndex <= 0) {
+          return false;
+        }
+        if (atIndex !== lastAtIndex) {
+          return false;
+        }
+        if (lastDotIndex <= atIndex + 1) {
+          return false;
+        }
+        if (lastDotIndex >= trimmedEmail.length - 1) {
+          return false;
+        }
+
+        return true;
+      }
+
+      function validateCandidate(candidate) {
+        const errors = [];
+        if (candidate.yearsOfExperience < 0 || candidate.yearsOfExperience > 50) {
+          errors.push("yearsOfExperience must be between 0 and 50.");
+        }
+        if (candidate.currentSalary <= 0) {
+          errors.push("currentSalary must be greater than 0.");
+        }
+        if (candidate.expectedSalary <= 0) {
+          errors.push("expectedSalary must be greater than 0.");
+        }
+        if (!Array.isArray(candidate.skills) || candidate.skills.length < 1) {
+          errors.push("skills must contain at least 1 skill.");
+        }
+        if (!isValidEmail(candidate.email)) {
+          errors.push("email must be a valid email format.");
+        }
+        if (candidate.phone.trim().length === 0) {
+          errors.push("phone must not be empty.");
+        }
+        return { valid: errors.length === 0, errors };
+      }
+
+      function validateVacancy(vacancy) {
+        const errors = [];
+        if (!Array.isArray(vacancy.requiredSkills) || vacancy.requiredSkills.length < 1) {
+          errors.push("requiredSkills must contain at least 1 skill.");
+        }
+        if (vacancy.minYearsExperience < 0) {
+          errors.push("minYearsExperience must be greater than or equal to 0.");
+        }
+        if (vacancy.maxYearsExperience < vacancy.minYearsExperience) {
+          errors.push("maxYearsExperience must be greater than or equal to minYearsExperience.");
+        }
+        if (vacancy.salaryRangeMin <= 0) {
+          errors.push("salaryRangeMin must be greater than 0.");
+        }
+        if (vacancy.salaryRangeMax <= 0) {
+          errors.push("salaryRangeMax must be greater than 0.");
+        }
+        if (vacancy.salaryRangeMax < vacancy.salaryRangeMin) {
+          errors.push("salaryRangeMax must be greater than or equal to salaryRangeMin.");
+        }
+        return { valid: errors.length === 0, errors };
+      }
+
+      function runAllChecks() {
+        const sortedBySalary = sortCandidatesBySalary(sampleCandidates, "asc");
+        const processes = [
+          {
+            id: "SP-1",
+            candidateId: "C-2024-0451",
+            vacancyId: "V-2024-0892",
+            stage: "Hired",
+            score: 95,
+            notes: "Great fit",
+            createdAt: "2026-01-01",
+            updatedAt: "2026-01-02",
+          },
+          {
+            id: "SP-2",
+            candidateId: "C-2024-0452",
+            vacancyId: "V-2024-0892",
+            stage: "Rejected",
+            score: 55,
+            notes: "Not enough experience",
+            createdAt: "2026-01-01",
+            updatedAt: "2026-01-03",
+          },
+          {
+            id: "SP-3",
+            candidateId: "C-2024-0453",
+            vacancyId: "V-2024-0892",
+            stage: "Hired",
+            score: 98,
+            notes: "Excellent fit",
+            createdAt: "2026-01-01",
+            updatedAt: "2026-01-04",
+          },
+        ];
+
+        const checks = [
+          {
+            group: "Collections",
+            label: "Filters candidates by required skills",
+            description: "People with both TypeScript and Node.js should be selected.",
+            expected: ["C-2024-0451", "C-2024-0453"],
+            actual: filterCandidatesBySkills(sampleCandidates, ["typescript", "node.js"]).map((c) => c.id),
+          },
+          {
+            group: "Collections",
+            label: "Sorts by salary without changing original list",
+            description: "Sorted list should start with lowest expected salary, and original should stay untouched.",
+            expected: { sorted: [2800, 4200, 6500], originalFirstId: "C-2024-0451" },
+            actual: {
+              sorted: sortCandidatesBySalary(sampleCandidates, "asc").map((c) => c.expectedSalary),
+              originalFirstId: sampleCandidates[0].id,
+            },
+          },
+          {
+            group: "Search",
+            label: "Finds candidate by email (case-insensitive)",
+            description: "Email with upper-case letters should still find the right person.",
+            expected: "C-2024-0451",
+            actual: findCandidateByEmail(sampleCandidates, "MARIA.GONZALEZ@EMAIL.COM")?.id || null,
+          },
+          {
+            group: "Search",
+            label: "Binary salary search returns index",
+            description: "When salary exists, index should not be -1.",
+            expected: true,
+            actual: binarySearchCandidateBySalary(sortedBySalary, 4200) >= 0,
+          },
+          {
+            group: "Transformations",
+            label: "Candidate score for top profile",
+            description: "Best candidate should score 100 for this vacancy.",
+            expected: 100,
+            actual: calculateCandidateScore(sampleCandidates[2], sampleVacancy),
+          },
+          {
+            group: "Transformations",
+            label: "Ranking order is correct",
+            description: "Candidates should be ordered by score from highest to lowest.",
+            expected: ["C-2024-0453", "C-2024-0451", "C-2024-0452"],
+            actual: rankCandidatesForVacancy(sampleCandidates, sampleVacancy).map((r) => r.candidate.id),
+          },
+          {
+            group: "Transformations",
+            label: "Average salary is rounded correctly",
+            description: "Average expected salary should be 4500.",
+            expected: 4500,
+            actual: calculateAverageSalary(sampleCandidates),
+          },
+          {
+            group: "Transformations",
+            label: "Fill rate is calculated",
+            description: "2 hired out of 3 should return 66.67%.",
+            expected: 66.67,
+            actual: calculateVacancyFillRate(processes),
+          },
+          {
+            group: "Validations",
+            label: "Email validation catches invalid address",
+            description: "A missing @ symbol should fail validation.",
+            expected: false,
+            actual: isValidEmail("not-an-email.com"),
+          },
+          {
+            group: "Validations",
+            label: "Vacancy validation catches broken rules",
+            description: "Invalid vacancy details should return valid = false.",
+            expected: false,
+            actual: validateVacancy({
+              ...sampleVacancy,
+              requiredSkills: [],
+              minYearsExperience: -1,
+              maxYearsExperience: -2,
+              salaryRangeMin: 0,
+              salaryRangeMax: -1,
+            }).valid,
+          },
+          {
+            group: "Validations",
+            label: "Candidate validation catches broken rules",
+            description: "Invalid candidate details should return valid = false.",
+            expected: false,
+            actual: validateCandidate({
+              ...sampleCandidates[0],
+              yearsOfExperience: -1,
+              currentSalary: 0,
+              expectedSalary: 0,
+              skills: [],
+              email: "invalid",
+              phone: "   ",
+            }).valid,
+          },
+          {
+            group: "Collections",
+            label: "Availability filter works",
+            description: "Immediate and 2 weeks should return two candidates.",
+            expected: ["C-2024-0452", "C-2024-0453"],
+            actual: filterCandidatesByAvailability(sampleCandidates, ["Immediate", "2 weeks"]).map((c) => c.id),
+          },
+          {
+            group: "Transformations",
+            label: "Top skills list returns expected size",
+            description: "Top 3 skills list should return exactly 3 entries.",
+            expected: 3,
+            actual: findTopSkills(sampleCandidates, 3).length,
+          },
+          {
+            group: "Transformations",
+            label: "Grouping by seniority includes all levels",
+            description: "Lead and Executive groups should exist even with zero candidates.",
+            expected: true,
+            actual: (() => {
+              const grouped = groupCandidatesBySeniority(sampleCandidates);
+              return Array.isArray(grouped.Lead) && Array.isArray(grouped.Executive);
+            })(),
+          },
+          {
+            group: "Search",
+            label: "ID search returns null when not found",
+            description: "Unknown candidate id should safely return null.",
+            expected: null,
+            actual: findCandidateById(sampleCandidates, "C-DOES-NOT-EXIST"),
+          },
+        ];
+
+        return checks.map((check) => {
+          const passed = JSON.stringify(check.expected) === JSON.stringify(check.actual);
+          return { ...check, passed };
+        });
+      }
+
+      function renderResults(results) {
+        const summaryElement = document.getElementById("summary");
+        const checksContainer = document.getElementById("checks");
+        const groupStatsContainer = document.getElementById("groupStats");
+
+        const total = results.length;
+        const passed = results.filter((r) => r.passed).length;
+        const failed = total - passed;
+
+        summaryElement.textContent = `${passed}/${total} checks passed (${failed} issues found)`;
+
+        const grouped = results.reduce((acc, result) => {
+          if (!acc[result.group]) {
+            acc[result.group] = { total: 0, passed: 0 };
+          }
+          acc[result.group].total += 1;
+          if (result.passed) {
+            acc[result.group].passed += 1;
+          }
+          return acc;
+        }, {});
+
+        groupStatsContainer.innerHTML = Object.entries(grouped)
+          .map(([group, stat]) => {
+            const failedCount = stat.total - stat.passed;
+            return `
+              <article class="group-card">
+                <h2 class="group-title">${group}</h2>
+                <div class="group-stat">${stat.passed}/${stat.total} passed, ${failedCount} failed</div>
+              </article>
+            `;
+          })
+          .join("");
+
+        checksContainer.innerHTML = results
+          .map((result) => {
+            const statusClass = result.passed ? "pass" : "fail";
+            const statusText = result.passed ? "PASS" : "FAIL";
+            return `
+              <article class="check">
+                <div class="check-top">
+                  <h3>${result.label}</h3>
+                  <span class="status ${statusClass}">${statusText}</span>
+                </div>
+                <p>${result.description}</p>
+                <div class="mono">Expected: ${JSON.stringify(result.expected)}</div>
+                <div class="mono">Actual: ${JSON.stringify(result.actual)}</div>
+              </article>
+            `;
+          })
+          .join("");
+      }
+
+      document.getElementById("runChecksBtn").addEventListener("click", () => {
+        const results = runAllChecks();
+        renderResults(results);
+      });
+    </script>
+  </body>
+</html>

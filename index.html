@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexova Local Tools</title>
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --ink: #0f172a;
+        --muted: #475569;
+        --brand: #0f766e;
+        --brand-2: #115e59;
+        --card: #ffffff;
+        --line: #e2e8f0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, #ccfbf1 0%, transparent 28%),
+          linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        min-height: 100vh;
+      }
+
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+      }
+
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.4rem, 4vw, 2rem);
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 70ch;
+        opacity: 0.95;
+      }
+
+      .cards {
+        margin-top: 16px;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+
+      .card p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .card a {
+        display: inline-block;
+        text-decoration: none;
+        color: white;
+        background: var(--brand);
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      .card a:hover {
+        background: var(--brand-2);
+      }
+
+      .tip {
+        margin-top: 16px;
+        background: #fff;
+        border: 1px dashed #94a3b8;
+        border-radius: 10px;
+        padding: 12px;
+        color: var(--muted);
+      }
+
+      code {
+        background: #f1f5f9;
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="hero">
+        <h1>Nexova Local Tools Dashboard</h1>
+        <p>
+          This page gives you quick access to the utility validator and documentation
+          while running the local Node server.
+        </p>
+      </section>
+
+      <section class="cards">
+        <article class="card">
+          <h2>Utility Validator</h2>
+          <p>Run an approachable pass/fail check for collections, search, scoring, and validations.</p>
+          <a href="/internal/utilities-validator.html">Open Validator</a>
+        </article>
+
+        <article class="card">
+          <h2>Main README</h2>
+          <p>Project overview, structure, and conventions for the milestone workspace.</p>
+          <a href="/README.md">Open README.md</a>
+        </article>
+
+        <article class="card">
+          <h2>Internal README</h2>
+          <p>Guidelines for internal tools and utilities in this repository.</p>
+          <a href="/internal/README.md">Open internal/README.md</a>
+        </article>
+      </section>
+
+      <section class="tip">
+        Tip: To run tests from terminal, use <code>npm test</code>.
+      </section>
+    </main>
+  </body>
+</html>
